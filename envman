@@ -1,8 +1,12 @@
 #!/bin/bash
 
-VERSION="0.1.0"
+VERSION="0.1.1"
 
 ENV_DIR="$HOME/.envman"
+
+if [[ ! -d "$ENV_DIR" ]]; then
+	mkdir -p "$ENV_DIR"
+fi
 
 ## Util
 
