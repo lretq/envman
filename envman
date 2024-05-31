@@ -131,7 +131,7 @@ sub_new() {
 }
 
 ## Main program
-while getopts ":hVd:" option; do
+while getopts ":hV:" option; do
 	case $option in
 	h) # display Help
 		Help
@@ -140,9 +140,6 @@ while getopts ":hVd:" option; do
 	V)
 		Version
 		exit
-		;;
-	d)
-		ENV_DIR="$OPTARG"
 		;;
 	\?)
 		Error "Invalid option"
