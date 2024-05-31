@@ -42,20 +42,6 @@ Version() {
 	echo "Envman v$VERSION"
 }
 
-DoReloadEnv() {
-	old="$ENV_DIR/.tmp"
-	new="$ENV_DIR/active"
-	
-	for var in $(cat "$old"|grep export|awk '{sub(/=.*/,""); print $2}'); do
-		echo "$var"
-		unset "$var"
-	done
-
-	rm "$old"
-
-	exec "$SHELL"
-}
-
 # usage: argc argreq
 chk_argc() {
 	if test "$1" -ne "$2"; then
@@ -74,7 +60,6 @@ chk_file() {
 sub_activate() {
 	chk_argc "$#" 1
 
-	cp "$ENV_DIR/active" "$ENV_DIR/.tmp"
 	local name="$1"
 	local path="$ENV_DIR/$name.env"
 
@@ -82,8 +67,6 @@ sub_activate() {
 
 	rm -f "$ENV_DIR/active"
 	ln -s "$path" "$ENV_DIR/active"
-
-	DoReloadEnv
 }
 
 sub_active() {
@@ -110,7 +93,6 @@ sub_shell() {
 }
 
 sub_edit() {
-	cp "$ENV_DIR/active" "$ENV_DIR/.tmp"
 	local path=""
 	local name="$1"
 	if [ ! -z "$name" ]; then
@@ -122,8 +104,6 @@ sub_edit() {
 	chk_file "$path"
 
 	"$EDITOR" "$path"
-
-	DoReloadEnv 
 }
 
 sub_new() {
