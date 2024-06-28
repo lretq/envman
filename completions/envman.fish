@@ -1,7 +1,9 @@
 set -l commands activate active list new edit shell help version
 
 function listenvs
-    echo -n (envman list | tail -n +2)
+    if test -d "$HOME/.envman"
+        echo -n (envman list | tail -n +2)
+    end
 end
 
 # disable files 
