@@ -68,15 +68,48 @@ link_points_to() {
 
 ## COMMANDS
 sub_activate() {
-	chk_argc "$#" 1
+	local name
+	if [[ "$#" -ge 1 ]]; then
+		name="$1"
+	else
+		# Build menu
+		local envs=()
+		shopt -s globstar nullglob
+		for file in "$ENV_DIR"/**/*.env; do
+			local rel="${file#"$ENV_DIR"/}"
+			envs+=("${rel%.env}")
+		done
 
-	local name="$1"
+		if [[ "${#envs[@]}" -eq 0 ]]; then
+			echo "No environments available." >&2
+			return 1
+		fi
+
+		echo "Available environments:"
+		local i
+		for i in "${!envs[@]}"; do
+			printf "\t%d) %s\n" "$((i+1))" "${envs[$i]}"
+		done
+
+		local choice
+		while true; do
+			read -rp "Select environment [1-${#envs[@]}]: " choice
+			if [[ "$choice" =~ ^[0-9]+$ ]] && \
+			   [[ "$choice" -ge 1 ]] && \
+			   [[ "$choice" -le "${#envs[@]}" ]]; then
+				name="${envs[$((choice-1))]}"
+				break
+			fi
+			echo "Invalid selection." >&2
+		done
+	fi
+
 	local path="$ENV_DIR/$name.env"
 
 	chk_file "$path"
 
-	rm -f "$ENV_DIR/active"
-	ln -s "$path" "$ENV_DIR/active"
+	ln -sf "$path" "$ENV_DIR/.active_new"
+	mv "$ENV_DIR/.active_new" "$ENV_DIR/active"
 }
 
 sub_active() {
@@ -125,9 +158,23 @@ sub_list() {
 }
 
 sub_shell() {
-	printf '[[ -f %q ]] && source %q\n' \
-		"$ENV_DIR/active" \
-		"$ENV_DIR/active"
+	local shell="${1:-bash}"
+	case "$shell" in
+		fish)
+			printf 'test -f %q && source %q\n' \
+				"$ENV_DIR/active" \
+				"$ENV_DIR/active"
+			;;
+		bash|zsh|sh)
+			printf '[[ -f %q ]] && source %q\n' \
+				"$ENV_DIR/active" \
+				"$ENV_DIR/active"
+			;;
+		*)
+			echo "Error: unsupported shell '$shell'." >&2
+			return 1
+			;;
+	esac
 }
 
 sub_edit() {
